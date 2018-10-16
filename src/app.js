@@ -8,6 +8,9 @@ const app = express();
 
 // set location for static files
 app.use(express.static(path.join(__dirname, 'public')));
+// middleware to handle POST
+app.use(express.urlencoded({extended: true}));
+
 
 // set view directory and view engine
 app.set('views', path.join(__dirname, 'views'));
@@ -19,20 +22,44 @@ const accounts = JSON.parse(accountData);
 const userData = fs.readFileSync(path.join(__dirname, 'json', 'users.json'),'utf8');
 const users = JSON.parse(userData);
 
-app.get('/savings', function(req, res){
+app.get('/savings', (req, res) => {
   res.render('account', {account: accounts.savings});
 })
-app.get('/checking', function(req, res){
+app.get('/checking', (req, res) => {
   res.render('account', {account: accounts.checking});
 })
-app.get('/credit', function(req, res){
+app.get('/credit', (req, res) => {
   res.render('account', {account: accounts.credit});
 })
-app.get('/profile', function(req, res){
+app.get('/profile', (req, res) => {
   res.render('profile', {user:users[0]});
 })
 
-app.get('/', function(req, res){
+app.get('/transfer', (req, res) => {
+  res.render('transfer');
+});
+app.post('/transfer', (req, res) => {
+  let amount = req.body.amount;
+  accounts[req.body.from].balance -= amount;
+  accounts[req.body.to].balance += parseInt(amount);
+  let accountsJSON = JSON.stringify(accounts);
+  fs.writeFileSync(path.join(__dirname,'json/accounts.json'),accountsJSON,'utf8');
+  res.render('transfer', {message:"Transfer Completed"});
+});
+
+app.get('/payment', (req, res) => {
+  res.render('payment', {account: accounts.credit});
+})
+app.post('/payment', (req, res) => {
+  let amount = req.body.amount;
+  accounts.credit.balance -= amount;
+  accounts.credit.available += parseInt(amount);
+  let accountsJSON = JSON.stringify(accounts);
+  fs.writeFileSync(path.join(__dirname,'json/accounts.json'),accountsJSON,"utf8");
+  res.render('payment', {message:"Payment Successful", account: accounts.credit});
+})
+
+app.get('/', (req, res) => {
   res.render('index', {
     //title: 'Index'
     title: 'Account Summary',
