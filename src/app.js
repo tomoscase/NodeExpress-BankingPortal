@@ -17,41 +17,16 @@ app.use(express.urlencoded({extended: true}));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
+const accountRoutes = require('./routes/accounts');
+const servicesRoutes = require('./routes/services');
 
-app.get('/savings', (req, res) => {
-  res.render('account', {account: accounts.savings});
-})
-app.get('/checking', (req, res) => {
-  res.render('account', {account: accounts.checking});
-})
-app.get('/credit', (req, res) => {
-  res.render('account', {account: accounts.credit});
-})
+app.use('/account', accountRoutes);
+app.use('/services', servicesRoutes);
+
 app.get('/profile', (req, res) => {
   res.render('profile', {user:users[0]});
 })
 
-app.get('/transfer', (req, res) => {
-  res.render('transfer');
-});
-app.post('/transfer', (req, res) => {
-  let amount = req.body.amount;
-  accounts[req.body.from].balance -= amount;
-  accounts[req.body.to].balance += parseInt(amount);
-  writeJSON();
-  res.render('transfer', {message:"Transfer Completed"});
-});
-
-app.get('/payment', (req, res) => {
-  res.render('payment', {account: accounts.credit});
-})
-app.post('/payment', (req, res) => {
-  let amount = req.body.amount;
-  accounts.credit.balance -= amount;
-  accounts.credit.available += parseInt(amount);
-  writeJSON();
-  res.render('payment', {message:"Payment Successful", account: accounts.credit});
-})
 
 app.get('/', (req, res) => {
   res.render('index', {
